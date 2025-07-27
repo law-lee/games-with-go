@@ -13,7 +13,36 @@ const (
 	winHeight int32 = 600
 )
 
-var nums = [][]byte{}
+var nums = [][]byte{
+	{
+		1, 1, 1,
+		1, 0, 1,
+		1, 0, 1,
+		1, 0, 1,
+		1, 1, 1,
+	},
+	{
+		1, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		0, 1, 0,
+		1, 1, 1,
+	},
+	{
+		1, 1, 1,
+		0, 0, 1,
+		1, 1, 1,
+		1, 0, 0,
+		1, 1, 1,
+	},
+	{
+		1, 1, 1,
+		0, 0, 1,
+		1, 1, 1,
+		0, 0, 1,
+		1, 1, 1,
+	},
+}
 
 type color struct {
 	r, g, b byte
@@ -37,6 +66,26 @@ type paddle struct {
 	h     float32
 	speed float32
 	color
+}
+
+func drawNumber(pos pos, color color, pixelSize int, num int, pixels []byte) {
+	startX := int(pos.x) - (pixelSize*3)/2
+	startY := int(pos.y) - (pixelSize*5)/2
+
+	for i, v := range nums[num] {
+		if v == 1 {
+			for y := startY; y < startY+pixelSize; y++ {
+				for x := startX; x < startX+pixelSize; x++ {
+					setPixels(x, y, color, pixels)
+				}
+			}
+		}
+		startX += pixelSize
+		if (i+1)%3 == 0 {
+			startY += pixelSize
+			startX -= pixelSize * 3
+		}
+	}
 }
 
 func (b *ball) draw(pixels []byte) {
@@ -172,6 +221,7 @@ func main() {
 			}
 		}
 		clear(pixels)
+		drawNumber(getCenter(), color{255, 255, 255}, 3, 2, pixels)
 		player1.draw(pixels)
 		player1.update(keyState, elapsedTime)
 
