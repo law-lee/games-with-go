@@ -65,8 +65,18 @@ type paddle struct {
 	w     float32
 	h     float32
 	speed float32
+	score int
 	color
 }
+
+type gameState int
+
+const (
+	START gameState = iota
+	PLAY
+)
+
+var state = START
 
 func drawNumber(pos pos, color color, pixelSize int, num int, pixels []byte) {
 	startX := int(pos.x) - (pixelSize*3)/2
@@ -108,21 +118,33 @@ func (b *ball) update(leftPaddle, rightPaddle *paddle, elapsedTime float32) {
 	if b.y < 0 || b.y > float32(winHeight) {
 		b.yv = -b.yv
 	}
-	if b.x < 0 || b.x > float32(winWidth) {
+	if b.x < 0 {
+		rightPaddle.score++
 		b.pos = getCenter()
+		state = START
+	} else if b.x > float32(winWidth) {
+		leftPaddle.score++
+		b.pos = getCenter()
+		state = START
 	}
 
-	if b.x < leftPaddle.x+leftPaddle.w/2 {
+	if b.x-b.radius < leftPaddle.x+leftPaddle.w/2 {
 		if b.y > leftPaddle.y-leftPaddle.h/2 && b.y < leftPaddle.y+leftPaddle.h/2 {
 			b.xv = -b.xv
+			b.x = leftPaddle.x + leftPaddle.w/2.0 + b.radius
 		}
 	}
-	if b.x > rightPaddle.x-rightPaddle.w/2 {
+	if b.x+b.radius > rightPaddle.x-rightPaddle.w/2 {
 		if b.y > rightPaddle.y-rightPaddle.h/2 && b.y < rightPaddle.y+rightPaddle.h/2 {
 			b.xv = -b.xv
+			b.x = rightPaddle.x - rightPaddle.w/2 - b.radius
 		}
 	}
 
+}
+
+func lerp(a, b float32, pct float32) float32 {
+	return a + pct*(b-a)
 }
 
 func (paddle *paddle) draw(pixels []byte) {
@@ -134,6 +156,9 @@ func (paddle *paddle) draw(pixels []byte) {
 			setPixels(int(startX)+x, int(startY)+y, paddle.color, pixels)
 		}
 	}
+
+	numX := lerp(paddle.x, getCenter().x, 0.2)
+	drawNumber(pos{numX, 35}, paddle.color, 10, paddle.score, pixels)
 }
 
 func (p *paddle) update(keyState []uint8, elapsedTime float32) {
@@ -203,8 +228,8 @@ func main() {
 	// renderer.Copy(tex, nil, nil)
 	// renderer.Present()
 
-	player1 := paddle{pos{100, 100}, 20, 100, 300, color{255, 255, 255}}
-	player2 := paddle{pos{700, 100}, 20, 100, 300, color{255, 255, 255}}
+	player1 := paddle{pos{100, 100}, 20, 100, 300, 0, color{255, 255, 255}}
+	player2 := paddle{pos{700, 100}, 20, 100, 300, 0, color{255, 255, 255}}
 	ball := ball{pos{300, 300}, 20, 400, 400, color{255, 255, 255}}
 
 	keyState := sdl.GetKeyboardState()
@@ -222,14 +247,26 @@ func main() {
 		}
 		clear(pixels)
 		drawNumber(getCenter(), color{255, 255, 255}, 3, 2, pixels)
+		switch state {
+		case PLAY:
+			player1.update(keyState, elapsedTime)
+			player2.aiUpdate(&ball, elapsedTime)
+			ball.update(&player1, &player2, elapsedTime)
+		case START:
+			if keyState[sdl.SCANCODE_SPACE] != 0 {
+				if player1.score == 3 || player2.score == 3 {
+					player1.score = 0
+					player2.score = 0
+				}
+
+				state = PLAY
+			}
+		}
 		player1.draw(pixels)
-		player1.update(keyState, elapsedTime)
 
 		player2.draw(pixels)
-		player2.aiUpdate(&ball, elapsedTime)
 
 		ball.draw(pixels)
-		ball.update(&player1, &player2, elapsedTime)
 
 		tex.Update(nil, unsafe.Pointer(&pixels[0]), int(winWidth)*4)
 		renderer.Copy(tex, nil, nil)
