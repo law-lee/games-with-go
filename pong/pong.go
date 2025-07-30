@@ -9,7 +9,6 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-
 const (
 	winWidth  int32 = 800
 	winHeight int32 = 600
@@ -121,7 +120,8 @@ func clamp(min, max, v int) int {
 	return v
 }
 
-func rescalAndDraw(noise []float32, min, max float32, gradient []color, pixels []byte) {
+func rescalAndDraw(noise []float32, min, max float32, gradient []color) []byte {
+	result := make([]byte, winWidth*winHeight*4)
 	scale := 255.0 / (max - min)
 	offset := min * scale
 
@@ -129,10 +129,11 @@ func rescalAndDraw(noise []float32, min, max float32, gradient []color, pixels [
 		noise[i] = noise[i]*scale - offset
 		c := gradient[clamp(0, 255, int(noise[i]))]
 		p := i * 4
-		pixels[p] = c.r
-		pixels[p+1] = c.g
-		pixels[p+2] = c.b
+		result[p] = c.r
+		result[p+1] = c.g
+		result[p+2] = c.b
 	}
+	return result
 }
 func drawNumber(pos pos, color color, pixelSize int, num int, pixels []byte) {
 	startX := int(pos.x) - (pixelSize*3)/2
@@ -290,9 +291,9 @@ func main() {
 
 	keyState := sdl.GetKeyboardState()
 
-	noise := noise.MakeNoise(noise.FBM,.001,0.5,2,3,int(winHeight),int(winHeight))
-	gradient := getGradient(color{255,0,0},color{0,0,0})
-	res
+	noise, min, max := noise.MakeNoise(noise.FBM, .01, 0.2, 2, 3, int(winHeight), int(winHeight))
+	gradient := getGradient(color{255, 0, 0}, color{0, 0, 0})
+	noisePixels := rescalAndDraw(noise, min, max, gradient)
 
 	var frameStart time.Time
 	var elapsedTime float32
@@ -305,7 +306,10 @@ func main() {
 				return
 			}
 		}
-		clear(pixels)
+		// for i := range noisePixels {
+		// 	pixels[i] = noisePixels[i]
+		// }
+		copy(pixels, noisePixels)
 		drawNumber(getCenter(), color{255, 255, 255}, 3, 2, pixels)
 		switch state {
 		case PLAY:

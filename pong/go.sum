@@ -1,4 +1,4 @@
-github.com/law-lee/games-with-go/noise v0.0.0-20250730135523-ad69a6afdcbc h1:OeQMlo7m9hZHK72hwaHOqabuehnlOkjy3wbGTWneS9A=
-github.com/law-lee/games-with-go/noise v0.0.0-20250730135523-ad69a6afdcbc/go.mod h1:E+NhLTdYCplizvKnFI8p0PMjKe7coVz4lQC0UY/QpZs=
+github.com/law-lee/games-with-go/noise v0.0.0-20250730142636-257453538e60 h1:nEKJtdd5R5gSeMF0OLEbjx9TyPEbz1E3l2q3Y6+CTwg=
+github.com/law-lee/games-with-go/noise v0.0.0-20250730142636-257453538e60/go.mod h1:E+NhLTdYCplizvKnFI8p0PMjKe7coVz4lQC0UY/QpZs=
 github.com/veandco/go-sdl2 v0.4.40 h1:fZv6wC3zz1Xt167P09gazawnpa0KY5LM7JAvKpX9d/U=
 github.com/veandco/go-sdl2 v0.4.40/go.mod h1:OROqMhHD43nT4/i9crJukyVecjPNYYuCofep6SNiAjY=
