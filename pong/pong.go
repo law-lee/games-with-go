@@ -9,6 +9,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+
 const (
 	winWidth  int32 = 800
 	winHeight int32 = 600
@@ -289,7 +290,9 @@ func main() {
 
 	keyState := sdl.GetKeyboardState()
 
-	noise := noise.MakeNo
+	noise := noise.MakeNoise(noise.FBM,.001,0.5,2,3,int(winHeight),int(winHeight))
+	gradient := getGradient(color{255,0,0},color{0,0,0})
+	res
 
 	var frameStart time.Time
 	var elapsedTime float32
