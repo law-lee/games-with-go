@@ -1,46 +1,46 @@
-package main
+package linestore
 
 import (
 	"fmt"
 )
 
-type storyPage struct {
-	text     string
-	nextPage *storyPage
+type StoryPage struct {
+	Text     string
+	NextPage *StoryPage
 }
 
-// func (page *storyPage) playPage() {
+// func (page *StoryPage) playPage() {
 // 	if page == nil {
 // 		return
 // 	}
-// 	fmt.Println(page.text)
-// 	page.nextPage.playPage()
+// 	fmt.Println(page.Text)
+// 	page.NextPage.playPage()
 // }
 
-func (page *storyPage) playPage() {
+func (page *StoryPage) playPage() {
 	for page != nil {
-		fmt.Println(page.text)
-		page = page.nextPage
+		fmt.Println(page.Text)
+		page = page.NextPage
 	}
 
 }
 
-func (page *storyPage) addToEnd(text string) {
-	for page.nextPage != nil {
-		page = page.nextPage
+func (page *StoryPage) addToEnd(Text string) {
+	for page.NextPage != nil {
+		page = page.NextPage
 	}
-	page.nextPage = &storyPage{text, nil}
+	page.NextPage = &StoryPage{Text, nil}
 
 }
 
-func (page *storyPage) addAfterHead(text string) {
-	newPage := &storyPage{text, page.nextPage}
-	page.nextPage = newPage
+func (page *StoryPage) addAfterHead(Text string) {
+	newPage := &StoryPage{Text, page.NextPage}
+	page.NextPage = newPage
 }
 
-func main() {
+func Run() {
 
-	page1 := &storyPage{"It was a dark and stormy night.", nil}
+	page1 := &StoryPage{"It was a dark and stormy night.", nil}
 	page1.addToEnd("You are alone, and you need to find the sacred helmet before the bad guys do")
 	page1.addToEnd("You see a troll ahead")
 

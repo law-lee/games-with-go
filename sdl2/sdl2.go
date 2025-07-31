@@ -1,4 +1,4 @@
-package main
+package sdl2
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ func setPixels(x, y int, c color, pixels []byte) {
 		pixels[index+2] = c.b
 	}
 }
-func main() {
+func Run() {
 	window, err := sdl.CreateWindow("Testing SDL2", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		winWidth, winHeight, sdl.WINDOW_SHOWN)
 

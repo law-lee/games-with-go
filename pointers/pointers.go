@@ -1,8 +1,8 @@
-package main
+package pointers
 
 import "fmt"
 
-func main() {
+func Run() {
 	x := 5
 	fmt.Println(x)
 

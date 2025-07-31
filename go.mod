@@ -1,4 +1,4 @@
-module simplex-noise
+module github.com/law-lee/games-with-go
 
 go 1.24.2
 

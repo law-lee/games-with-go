@@ -1,4 +1,4 @@
-package main
+package branchingstory
 
 import (
 	"bufio"
@@ -6,25 +6,25 @@ import (
 	"os"
 )
 
-type storyNode struct {
-	text    string
-	yesPath *storyNode
-	noPath  *storyNode
+type StoryNode struct {
+	Text    string
+	YesPath *StoryNode
+	NoPath  *StoryNode
 }
 
-func (node *storyNode) play() {
-	fmt.Println(node.text)
-	if node.yesPath != nil && node.noPath != nil {
+func (node *StoryNode) play() {
+	fmt.Println(node.Text)
+	if node.YesPath != nil && node.NoPath != nil {
 		scanner := bufio.NewScanner(os.Stdin)
 
 		for {
 			scanner.Scan()
 			answer := scanner.Text()
 			if answer == "yes" {
-				node.yesPath.play()
+				node.YesPath.play()
 				break
 			} else if answer == "no" {
-				node.noPath.play()
+				node.NoPath.play()
 				break
 			} else {
 				fmt.Println("That is not an option, please input yes or no.")
@@ -35,13 +35,13 @@ func (node *storyNode) play() {
 
 }
 
-func main() {
-	root := &storyNode{"This is the entrance of the dark cave, do you want to step in? ", nil, nil}
+func Run() {
+	root := &StoryNode{"This is the entrance of the dark cave, do you want to step in? ", nil, nil}
 
-	winning := &storyNode{"You have won.", nil, nil}
-	lose := &storyNode{"You have lose.", nil, nil}
+	winning := &StoryNode{"You have won.", nil, nil}
+	lose := &StoryNode{"You have lose.", nil, nil}
 
-	root.yesPath = lose
-	root.noPath = winning
+	root.YesPath = lose
+	root.NoPath = winning
 	root.play()
 }

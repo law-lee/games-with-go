@@ -1,4 +1,4 @@
-package main
+package simplexnoise
 
 import (
 	"fmt"
@@ -164,7 +164,7 @@ func setPixels(x, y int, c color, pixels []byte) {
 		pixels[index+2] = c.b
 	}
 }
-func main() {
+func Run() {
 	err := sdl.Init(sdl.INIT_EVERYTHING)
 	if err != nil {
 		fmt.Println(err)

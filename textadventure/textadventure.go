@@ -1,4 +1,4 @@
-package main
+package textadventure
 
 import (
 	"bufio"
@@ -64,7 +64,7 @@ func (node *storyNode) play() {
 
 var scanner *bufio.Scanner
 
-func main() {
+func Run() {
 	scanner = bufio.NewScanner(os.Stdin)
 
 	start := &storyNode{
