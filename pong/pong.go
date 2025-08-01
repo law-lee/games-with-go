@@ -120,8 +120,8 @@ func clamp(min, max, v int) int {
 	return v
 }
 
-func rescalAndDraw(noise []float32, min, max float32, gradient []color) []byte {
-	result := make([]byte, winWidth*winHeight*4)
+func rescalAndDraw(noise []float32, min, max float32, gradient []color, w, h int32) []byte {
+	result := make([]byte, w*h*4)
 	scale := 255.0 / (max - min)
 	offset := min * scale
 
@@ -291,9 +291,9 @@ func Run() {
 
 	keyState := sdl.GetKeyboardState()
 
-	noise, min, max := noise.MakeNoise(noise.FBM, .01, 0.2, 2, 3, int(winHeight), int(winHeight))
+	noise, min, max := noise.MakeNoise(noise.FBM, .01, 0.2, 2, 3, int(winWidth), int(winHeight))
 	gradient := getGradient(color{255, 0, 0}, color{0, 0, 0})
-	noisePixels := rescalAndDraw(noise, min, max, gradient)
+	noisePixels := rescalAndDraw(noise, min, max, gradient, winWidth, winHeight)
 
 	var frameStart time.Time
 	var elapsedTime float32
