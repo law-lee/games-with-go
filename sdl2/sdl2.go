@@ -25,6 +25,11 @@ func setPixels(x, y int, c color, pixels []byte) {
 	}
 }
 func Run() {
+	err := sdl.Init(sdl.INIT_EVERYTHING)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	window, err := sdl.CreateWindow("Testing SDL2", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED,
 		winWidth, winHeight, sdl.WINDOW_SHOWN)
 
@@ -51,13 +56,17 @@ func Run() {
 
 	pixels := make([]byte, winWidth*winHeight*4)
 
-	for y := 0; y < int(winHeight); y++ {
-		for x := 0; x < int(winWidth); x++ {
-			setPixels(x, y, color{byte(x % 255), byte(y % 255), byte(y % 255)}, pixels)
+	for {
+		for event := sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+			switch event.(type) {
+			case *sdl.QuitEvent:
+				return
+			}
 		}
+		
+		tex.Update(nil, unsafe.Pointer(&pixels[0]), int(winWidth)*4)
+		renderer.Copy(tex, nil, nil)
+		renderer.Present()
+
 	}
-	tex.Update(nil, unsafe.Pointer(&pixels[0]), int(winWidth)*4)
-	renderer.Copy(tex, nil, nil)
-	renderer.Present()
-	sdl.Delay(3000)
 }

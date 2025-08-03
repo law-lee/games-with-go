@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/law-lee/games-with-go/pong"
+	"github.com/law-lee/games-with-go/balloons"
 )
 
 func main() {
-	pong.Run()
+	//pong.Run()
+	balloons.Run()
 }
