@@ -15,39 +15,39 @@ const (
 	winHeight int32 = 600
 )
 
-func lerp(b1 byte, b2 byte, pct float32) byte {
+func Lerp(b1 byte, b2 byte, pct float32) byte {
 	return byte(float32(b1) + pct*(float32(b2)-float32(b1)))
 }
 
-func colorLerp(c1, c2 color, pct float32) color {
-	return color{lerp(c1.r, c2.r, pct), lerp(c1.g, c2.g, pct), lerp(c1.b, c2.b, pct)}
+func ColorLerp(c1, c2 Color, pct float32) Color {
+	return Color{Lerp(c1.R, c2.R, pct), Lerp(c1.G, c2.G, pct), Lerp(c1.B, c2.B, pct)}
 }
 
-func getGradient(c1, c2 color) []color {
-	result := make([]color, 256)
+func GetGradient(c1, c2 Color) []Color {
+	result := make([]Color, 256)
 
 	for i := range result {
 		pct := float32(i) / float32(255)
-		result[i] = colorLerp(c1, c2, pct)
+		result[i] = ColorLerp(c1, c2, pct)
 	}
 	return result
 }
 
-func getDualGradient(c1, c2, c3, c4 color) []color {
-	result := make([]color, 256)
+func GetDualGradient(c1, c2, c3, c4 Color) []Color {
+	result := make([]Color, 256)
 
 	for i := range result {
 		pct := float32(i) / float32(255)
 		if pct < 0.5 {
-			result[i] = colorLerp(c1, c2, pct*float32(2))
+			result[i] = ColorLerp(c1, c2, pct*float32(2))
 		} else {
-			result[i] = colorLerp(c3, c4, pct*float32(1.5)-float32(0.5))
+			result[i] = ColorLerp(c3, c4, pct*float32(1.5)-float32(0.5))
 		}
 	}
 	return result
 }
 
-func clamp(min, max, v int) int {
+func Clamp(min, max, v int) int {
 	if v < min {
 		v = min
 	} else if v > max {
@@ -56,18 +56,20 @@ func clamp(min, max, v int) int {
 	return v
 }
 
-func rescalAndDraw(noise []float32, min, max float32, gradient []color, pixels []byte) {
+func RescalAndDraw(noise []float32, min, max float32, gradient []Color, w, h int32) []byte {
+	result := make([]byte, w*h*4)
 	scale := 255.0 / (max - min)
 	offset := min * scale
 
 	for i := range noise {
 		noise[i] = noise[i]*scale - offset
-		c := gradient[clamp(0, 255, int(noise[i]))]
+		c := gradient[Clamp(0, 255, int(noise[i]))]
 		p := i * 4
-		pixels[p] = c.r
-		pixels[p+1] = c.g
-		pixels[p+2] = c.b
+		result[p] = c.R
+		result[p+1] = c.G
+		result[p+2] = c.B
 	}
+	return result
 }
 
 func turbulence(x, y, frequency, lacunarity, gain float32, octaves int) float32 {
@@ -144,24 +146,24 @@ func makeNoise(pixels []byte, frequency, lacunarity, gain float32, octaves, w, h
 	// 	}
 	// }
 
-	//gradient := getGradient(color{255, 0, 0}, color{0, 0, 255})
+	//gradient := GetGradient(Color{255, 0, 0}, Color{0, 0, 255})
 	timeElapsed := time.Since(startTime).Seconds() * 1000
 	fmt.Printf("makeNoise Took: %f ms.\n", timeElapsed)
-	gradient := getDualGradient(color{0, 0, 175}, color{80, 160, 244}, color{12, 192, 75}, color{255, 255, 255})
+	gradient := GetDualGradient(Color{0, 0, 175}, Color{80, 160, 244}, Color{12, 192, 75}, Color{255, 255, 255})
 
-	rescalAndDraw(noise, min, max, gradient, pixels)
+	RescalAndDraw(noise, min, max, gradient, winWidth, winHeight)
 }
 
-type color struct {
-	r, g, b byte
+type Color struct {
+	R, G, B byte
 }
 
-func setPixels(x, y int, c color, pixels []byte) {
+func setPixels(x, y int, c Color, pixels []byte) {
 	index := (y*int(winWidth) + x) * 4
 	if index >= 0 && index < len(pixels)-4 {
-		pixels[index] = c.r
-		pixels[index+1] = c.g
-		pixels[index+2] = c.b
+		pixels[index] = c.R
+		pixels[index+1] = c.G
+		pixels[index+2] = c.B
 	}
 }
 func Run() {

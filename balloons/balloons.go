@@ -6,6 +6,8 @@ import (
 	"os"
 	"unsafe"
 
+	"github.com/law-lee/games-with-go/noise"
+	snoise "github.com/law-lee/games-with-go/simplexNoise"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -22,6 +24,7 @@ type texture struct {
 	pos
 	pixels      []byte
 	w, h, pitch int
+	scale       float32
 }
 
 type pos struct {
@@ -75,6 +78,54 @@ func (tex *texture) drawAlpha(pixels []byte) {
 	}
 }
 
+func flerp(a, b, pct float32) float32 {
+	return a + (b-a)*pct
+}
+
+func blerp(c00, c10, c01, c11, tx, ty float32) float32 {
+	return flerp(flerp(c00, c10, tx), flerp(c01, c11, tx), ty)
+}
+func (tex *texture) drawBilinearScaled(scaleX, scaleY float32, pixels []byte) {
+	newWidth := int(float32(tex.w) * scaleX)
+	newHeight := int(float32(tex.h) * scaleY)
+	texW4 := tex.w * 4
+
+	for y := 0; y < newHeight; y++ {
+		fy := float32(y) / float32(newHeight) * float32(tex.h-1)
+		fyi := int(fy)
+		screenY := int(fy*scaleY) + int(tex.x)
+		screenIndex := screenY*winWidth*4 + int(tex.x)*4
+
+		ty := fy - float32(fyi)
+
+		for x := 0; x < newWidth; x++ {
+			fx := float32(x) / float32(newWidth) * float32(tex.w-1)
+			screenX := int(fx*scaleX) + int(tex.x)
+			if screenX >= 0 && screenX < winWidth && screenY >= 0 && screenY < winHeight {
+				fxi := int(fx)
+
+				c00i := fyi*texW4 + fxi*4
+				c10i := fyi*texW4 + (fxi+1)*4
+				c01i := (fyi+1)*texW4 + fxi*4
+				c11i := (fyi+1)*texW4 + (fxi+1)*4
+
+				tx := fx - float32(fxi)
+
+				for i := 0; i < 4; i++ {
+					c00 := float32(tex.pixels[c00i+1])
+					c10 := float32(tex.pixels[c10i+1])
+					c01 := float32(tex.pixels[c01i+1])
+					c11 := float32(tex.pixels[c11i+1])
+
+					pixels[screenIndex] = byte(blerp(c00, c10, c01, c11, tx, ty))
+					screenIndex++
+				}
+
+			}
+		}
+	}
+}
+
 func (tex *texture) draw(pixels []byte) {
 	for y := 0; y < tex.h; y++ {
 		for x := 0; x < tex.w; x++ {
@@ -96,8 +147,8 @@ func (tex *texture) draw(pixels []byte) {
 
 func loadBalloons() []*texture {
 	balloonStrs := []string{"balloon_red.png", "balloon_green.png", "balloon_blue.png"}
-	pixelTex := make([]*texture, 0)
-	for _, bStr := range balloonStrs {
+	balloonTex := make([]*texture, len(balloonStrs))
+	for i, bStr := range balloonStrs {
 		infile, err := os.Open("balloons/" + bStr)
 		if err != nil {
 			panic(err)
@@ -128,9 +179,9 @@ func loadBalloons() []*texture {
 			}
 		}
 
-		pixelTex = append(pixelTex, &texture{pos{0, 0}, balloonPixels, w, h, w * 4})
+		balloonTex[i] = &texture{pos{float32(i * 60), float32(i * 60)}, balloonPixels, w, h, w * 4, float32(1 + i)}
 	}
-	return pixelTex
+	return balloonTex
 }
 
 func Run() {
@@ -163,6 +214,11 @@ func Run() {
 	}
 	defer tex.Destroy()
 
+	cloudNoise, min, max := noise.MakeNoise(noise.FBM, .009, .5, 3, 3, winWidth, winHeight)
+	cloudGradient := snoise.GetGradient(snoise.Color{R: 0, G: 0, B: 255}, snoise.Color{R: 255, G: 255, B: 255})
+	cloudPixels := snoise.RescalAndDraw(cloudNoise, min, max, cloudGradient, winWidth, winHeight)
+	cloudTexture := texture{pos{0, 0}, cloudPixels, winWidth, winHeight, winWidth * 4, 1}
+
 	pixels := make([]byte, winWidth*winHeight*4)
 	balloonTexs := loadBalloons()
 	dir := 1
@@ -173,9 +229,10 @@ func Run() {
 				return
 			}
 		}
-		clear(pixels)
+		cloudTexture.draw(pixels)
 		for _, tex := range balloonTexs {
-			tex.drawAlpha(pixels)
+			//tex.drawAlpha(pixels)
+			tex.drawBilinearScaled(tex.scale, tex.scale, pixels)
 		}
 
 		balloonTexs[1].x += float32(1 * dir)
