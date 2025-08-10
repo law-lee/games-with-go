@@ -93,7 +93,7 @@ func (tex *texture) drawBilinearScaled(scaleX, scaleY float32, pixels []byte) {
 	for y := 0; y < newHeight; y++ {
 		fy := float32(y) / float32(newHeight) * float32(tex.h-1)
 		fyi := int(fy)
-		screenY := int(fy*scaleY) + int(tex.x)
+		screenY := int(fy*scaleY) + int(tex.y) // <-- use tex.y here
 		screenIndex := screenY*winWidth*4 + int(tex.x)*4
 
 		ty := fy - float32(fyi)
@@ -103,21 +103,32 @@ func (tex *texture) drawBilinearScaled(scaleX, scaleY float32, pixels []byte) {
 			screenX := int(fx*scaleX) + int(tex.x)
 			if screenX >= 0 && screenX < winWidth && screenY >= 0 && screenY < winHeight {
 				fxi := int(fx)
-
+				// Bounds check for indices
+				if fxi < 0 || fxi+1 < 0 || fxi+1 >= tex.w || fyi < 0 || fyi+1 < 0 || fyi+1 >= tex.h {
+					continue
+				}
 				c00i := fyi*texW4 + fxi*4
 				c10i := fyi*texW4 + (fxi+1)*4
 				c01i := (fyi+1)*texW4 + fxi*4
 				c11i := (fyi+1)*texW4 + (fxi+1)*4
 
+				// Ensure indices are within tex.pixels bounds
+				if c00i < 0 || c00i+3 >= len(tex.pixels) ||
+					c10i < 0 || c10i+3 >= len(tex.pixels) ||
+					c01i < 0 || c01i+3 >= len(tex.pixels) ||
+					c11i < 0 || c11i+3 >= len(tex.pixels) {
+					continue
+				}
 				tx := fx - float32(fxi)
 
 				for i := 0; i < 4; i++ {
-					c00 := float32(tex.pixels[c00i+1])
-					c10 := float32(tex.pixels[c10i+1])
-					c01 := float32(tex.pixels[c01i+1])
-					c11 := float32(tex.pixels[c11i+1])
-
-					pixels[screenIndex] = byte(blerp(c00, c10, c01, c11, tx, ty))
+					if screenIndex < len(pixels) {
+						c00 := float32(tex.pixels[c00i+i])
+						c10 := float32(tex.pixels[c10i+i])
+						c01 := float32(tex.pixels[c01i+i])
+						c11 := float32(tex.pixels[c11i+i])
+						pixels[screenIndex] = byte(blerp(c00, c10, c01, c11, tx, ty))
+					}
 					screenIndex++
 				}
 
